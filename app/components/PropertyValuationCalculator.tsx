@@ -22,6 +22,7 @@ export default function PropertyValuationCalculator() {
 
   const [estimates, setEstimates] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -572,16 +573,49 @@ export default function PropertyValuationCalculator() {
     return suburbData[suburbKey] || null
   }
 
+  // Send data to Google Sheets
+  const sendToGoogleSheets = async (estimateValues) => {
+    try {
+      const response = await fetch("/api/send-to-sheets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          formData,
+          estimates: estimateValues,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        return true
+      } else {
+        console.error("Failed to send to Google Sheets:", result.message)
+        return false
+      }
+    } catch (error) {
+      console.error("Error sending to Google Sheets:", error)
+      return false
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const estimateValues = calculateAllEstimates()
     setEstimates(estimateValues)
     setSubmitting(true)
 
+    // Send to Google Sheets
+    const sheetsSuccess = await sendToGoogleSheets(estimateValues)
+
     setTimeout(() => {
-      alert(
-        `Thanks ${formData.name}! Based on multi-source Auckland market data, your property valuation is $${estimateValues?.totalEstimatedValue?.toLocaleString("en-NZ", { maximumFractionDigits: 0 })} NZD. A detailed report will be sent to ${formData.email}.`,
-      )
+      const message = sheetsSuccess
+        ? `Thanks ${formData.name}! Based on multi-source Auckland market data, your property valuation is $${estimateValues?.totalEstimatedValue?.toLocaleString("en-NZ", { maximumFractionDigits: 0 })} NZD. Your details have been recorded and our team will contact you within 24 hours.`
+        : `Thanks ${formData.name}! Based on multi-source Auckland market data, your property valuation is $${estimateValues?.totalEstimatedValue?.toLocaleString("en-NZ", { maximumFractionDigits: 0 })} NZD. Our team will contact you within 24 hours.`
+
+      alert(message)
       setSubmitting(false)
     }, 2000)
   }
@@ -608,6 +642,8 @@ export default function PropertyValuationCalculator() {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Email Status Indicator */}
+
           {/* Market Data Summary */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-start">
@@ -797,7 +833,7 @@ export default function PropertyValuationCalculator() {
               {submitting ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Calculating with Multi-Source Data...
+                  Calculating & Saving Data...
                 </div>
               ) : (
                 <div className="flex items-center justify-center">
