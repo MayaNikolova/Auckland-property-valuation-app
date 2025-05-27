@@ -37,6 +37,16 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Custom padding overrides */
+  .p-6 {
+    padding: 0.5rem !important;
+  }
+
+  .px-4 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 
 @layer base {
