@@ -1161,18 +1161,7 @@ export default function PropertyValuationCalculator() {
                           />
                         </svg>
                       </a>
-                    </div>
-                {/*new code*/}
-                    <div className="flex justify-center">
-          						<iframe 
-          								src="https://www.realestate.co.nz/insights/auckland/${formData.city}/${formData.suburb.toLowerCase().replace(/\s+/g, "-")}" 
-          								width="100%" 
-          								height="1200px" 
-          								frameborder="0"
-          								style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          							</iframe>
-                    </div>
-					    {/*new code end*/}                    
+                    </div>        
                     <div className="mt-4 p-3 bg-white rounded text-xs text-center">
                       <p className="text-gray-700">
                         <strong>Detailed Insights:</strong> This link will take you to comprehensive suburb data
