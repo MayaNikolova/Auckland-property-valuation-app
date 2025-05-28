@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Calculator, TrendingUp, DollarSign, Info, Database, MapPin } from "lucide-react"
 
@@ -14,6 +15,7 @@ export default function PropertyValuationCalculator() {
     email: "",
     phone: "",
     address: "",
+    city: "",
     suburb: "",
     purchasePrice: "",
     purchaseYear: "",
@@ -24,8 +26,198 @@ export default function PropertyValuationCalculator() {
   const [submitting, setSubmitting] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
 
+  // Auckland Cities and Suburbs structure
+  const aucklandLocations = {
+    "auckland-city": {
+      name: "Auckland City",
+      suburbs: [
+        "Auckland Central",
+        "Ponsonby",
+        "Parnell",
+        "Newmarket",
+        "Mount Eden",
+        "Epsom",
+        "Remuera",
+        "Orakei",
+        "Mission Bay",
+        "Kohimarama",
+        "St Heliers",
+        "Glendowie",
+        "Meadowbank",
+        "St Johns",
+        "Ellerslie",
+        "Onehunga",
+        "Royal Oak",
+        "Mount Roskill",
+        "Three Kings",
+        "Sandringham",
+        "Kingsland",
+        "Morningside",
+        "Point Chevalier",
+        "Western Springs",
+        "Grey Lynn",
+        "Herne Bay",
+        "Freemans Bay",
+        "Viaduct Harbour",
+        "Wynyard Quarter",
+        "Grafton",
+        "Domain",
+        "Carlton",
+      ],
+    },
+    "north-shore-city": {
+      name: "North Shore City",
+      suburbs: [
+        "Takapuna",
+        "Milford",
+        "Devonport",
+        "Belmont",
+        "Hauraki",
+        "Westlake",
+        "Forrest Hill",
+        "Sunnynook",
+        "Birkenhead",
+        "Northcote",
+        "Hillcrest",
+        "Glenfield",
+        "Beach Haven",
+        "Birkdale",
+        "Browns Bay",
+        "Rothesay Bay",
+        "Murrays Bay",
+        "Mairangi Bay",
+        "Campbells Bay",
+        "Castor Bay",
+        "Long Bay",
+        "Torbay",
+        "Waiake",
+        "Brown Bay",
+        "Albany",
+        "Rosedale",
+        "Unsworth Heights",
+      ],
+    },
+    "waitakere-city": {
+      name: "Waitakere City",
+      suburbs: [
+        "Henderson",
+        "Te Atatu Peninsula",
+        "Te Atatu South",
+        "Massey",
+        "West Harbour",
+        "Hobsonville",
+        "New Lynn",
+        "Glen Eden",
+        "Titirangi",
+        "Green Bay",
+        "Kelston",
+        "Avondale",
+        "Blockhouse Bay",
+        "Lynfield",
+        "Hillsborough",
+        "Mount Roskill",
+        "Ranui",
+        "Swanson",
+        "Waitakere",
+        "Oratia",
+      ],
+    },
+    "manukau-city": {
+      name: "Manukau City",
+      suburbs: [
+        "Manukau",
+        "Botany",
+        "Howick",
+        "Pakuranga",
+        "Half Moon Bay",
+        "Bucklands Beach",
+        "Eastern Beach",
+        "Dannemora",
+        "Flat Bush",
+        "East Tamaki",
+        "Otara",
+        "Papatoetoe",
+        "Mangere",
+        "Mangere East",
+        "Favona",
+        "Otahuhu",
+        "Middlemore",
+        "Manurewa",
+        "Clendon Park",
+        "Wattle Downs",
+        "Takanini",
+        "Papakura",
+        "Clevedon",
+        "Whitford",
+        "Beachlands",
+        "Maraetai",
+      ],
+    },
+    "papakura-district": {
+      name: "Papakura District",
+      suburbs: ["Papakura", "Takanini", "Rosehill", "Red Hill", "Karaka", "Drury", "Hingaia", "Ardmore"],
+    },
+    "rodney-district": {
+      name: "Rodney District",
+      suburbs: [
+        "Orewa",
+        "Whangaparaoa",
+        "Red Beach",
+        "Stanmore Bay",
+        "Army Bay",
+        "Silverdale",
+        "Dairy Flat",
+        "Albany",
+        "Coatesville",
+        "Riverhead",
+        "Huapai",
+        "Kumeu",
+        "Waimauku",
+        "Helensville",
+        "Kaukapakapa",
+      ],
+    },
+    "franklin-district": {
+      name: "Franklin District",
+      suburbs: ["Pukekohe", "Waiuku", "Tuakau", "Pokeno", "Bombay", "Patumahoe", "Buckland", "Mauku", "Clarks Beach"],
+    },
+  }
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleCityChange = (cityKey) => {
+    setFormData({
+      ...formData,
+      city: cityKey,
+      suburb: "", // Reset suburb when city changes
+    })
+  }
+
+  const handleSuburbChange = (suburb) => {
+    setFormData({ ...formData, suburb })
+  }
+
+  // Generate property search URLs
+  const generatePropertySearchUrls = () => {
+    if (!formData.city || !formData.suburb) return null
+
+    const cityName = aucklandLocations[formData.city]?.name
+    const suburbName = formData.suburb
+
+    // RealEstate.co.nz URL format
+    const realEstateUrl = `https://www.realestate.co.nz/residential/sale/auckland/${formData.city}/${suburbName.toLowerCase().replace(/\s+/g, "-")}`
+
+    // TradeMe URL format
+    const tradeMeUrl = `https://www.trademe.co.nz/a/property/residential/sale?search_string=${encodeURIComponent(suburbName + ", Auckland")}&property_type=residential&listing_type=sale`
+
+    return {
+      realEstate: realEstateUrl,
+      tradeMe: tradeMeUrl,
+      cityName,
+      suburbName,
+    }
   }
 
   // Auckland property growth data from multiple sources (1980-2024)
@@ -348,112 +540,6 @@ export default function PropertyValuationCalculator() {
     },
   }
 
-  // Comprehensive suburb data (in production, this would come from APIs)
-  const suburbData = {
-    botany: {
-      name: "Botany",
-      region: "East Auckland",
-      averageSalePrice: 1250000,
-      medianSalePrice: 1180000,
-      averageRentalPrice: 650,
-      medianRentalPrice: 620,
-      demographics: {
-        medianAge: 38,
-        households: 4200,
-        population: 12500,
-        medianIncome: 85000,
-        ethnicityBreakdown: {
-          european: 45,
-          asian: 35,
-          pacific: 12,
-          maori: 6,
-          other: 2,
-        },
-      },
-      marketTrends: {
-        salesVolume: 156,
-        daysOnMarket: 28,
-        priceGrowth12Months: 2.3,
-        rentalYield: 4.2,
-      },
-      amenities: {
-        schools: ["Botany Downs Primary", "Botany Downs Secondary College"],
-        shopping: ["Botany Town Centre", "Botany Junction"],
-        transport: ["Botany Bus Station", "Eastern Busway"],
-        recreation: ["Botany Downs Park", "Te Irirangi Drive Cycleway"],
-      },
-      lastUpdated: "2024-01-15",
-    },
-    pakuranga: {
-      name: "Pakuranga",
-      region: "East Auckland",
-      averageSalePrice: 1180000,
-      medianSalePrice: 1120000,
-      averageRentalPrice: 580,
-      medianRentalPrice: 560,
-      demographics: {
-        medianAge: 42,
-        households: 5800,
-        population: 16200,
-        medianIncome: 78000,
-        ethnicityBreakdown: {
-          european: 52,
-          asian: 28,
-          pacific: 8,
-          maori: 9,
-          other: 3,
-        },
-      },
-      marketTrends: {
-        salesVolume: 203,
-        daysOnMarket: 32,
-        priceGrowth12Months: 1.8,
-        rentalYield: 3.9,
-      },
-      amenities: {
-        schools: ["Pakuranga College", "Pakuranga Primary"],
-        shopping: ["Pakuranga Plaza", "Highland Park Shopping Centre"],
-        transport: ["Pakuranga Bus Station", "Eastern Busway"],
-        recreation: ["Pakuranga Golf Club", "Lloyd Elsmore Park"],
-      },
-      lastUpdated: "2024-01-15",
-    },
-    howick: {
-      name: "Howick",
-      region: "East Auckland",
-      averageSalePrice: 1320000,
-      medianSalePrice: 1280000,
-      averageRentalPrice: 720,
-      medianRentalPrice: 690,
-      demographics: {
-        medianAge: 40,
-        households: 3900,
-        population: 11800,
-        medianIncome: 92000,
-        ethnicityBreakdown: {
-          european: 48,
-          asian: 38,
-          pacific: 6,
-          maori: 5,
-          other: 3,
-        },
-      },
-      marketTrends: {
-        salesVolume: 142,
-        daysOnMarket: 25,
-        priceGrowth12Months: 3.1,
-        rentalYield: 4.5,
-      },
-      amenities: {
-        schools: ["Howick College", "Howick Primary"],
-        shopping: ["Howick Village", "Meadowlands Shopping Centre"],
-        transport: ["Howick Bus Station", "Eastern Busway"],
-        recreation: ["Howick Historical Village", "Stockade Hill"],
-      },
-      lastUpdated: "2024-01-15",
-    },
-  }
-
   // Calculate average growth rate for each year
   const getAverageGrowthByYear = () => {
     const averageGrowth = {}
@@ -568,11 +654,6 @@ export default function PropertyValuationCalculator() {
     return breakdown
   }
 
-  const getSuburbReport = () => {
-    const suburbKey = formData.suburb.toLowerCase().trim()
-    return suburbData[suburbKey] || null
-  }
-
   // Send data to Google Sheets
   const sendToGoogleSheets = async (estimateValues) => {
     try {
@@ -629,7 +710,7 @@ export default function PropertyValuationCalculator() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto">
       <Card className="shadow-lg">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -642,10 +723,8 @@ export default function PropertyValuationCalculator() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Email Status Indicator */}
-
           {/* Market Data Summary */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-start">
               <Database className="h-5 w-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
               <div className="text-sm text-green-800">
@@ -748,17 +827,53 @@ export default function PropertyValuationCalculator() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="suburb">Suburb</Label>
-              <Input
-                id="suburb"
-                name="suburb"
-                placeholder="Botany, Pakuranga, Howick, Half Moon Bay, etc."
-                value={formData.suburb}
-                onChange={handleChange}
-                required
-              />
-              <p className="text-sm text-gray-500">Enter Auckland suburb for recent sales comparison</p>
+            {/* Location Selection */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Select value={formData.city} onValueChange={handleCityChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select City" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(aucklandLocations).map(([key, city]) => (
+                        <SelectItem key={key} value={key}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="suburb">Suburb</Label>
+                  <Select value={formData.suburb} onValueChange={handleSuburbChange} disabled={!formData.city}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={formData.city ? "Select Suburb" : "Select City first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formData.city &&
+                        aucklandLocations[formData.city]?.suburbs.map((suburb) => (
+                          <SelectItem key={suburb} value={suburb}>
+                            {suburb}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Location Confirmation */}
+              {formData.city && formData.suburb && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 text-blue-600 mr-2" />
+                    <span className="text-sm text-blue-800">
+                      <strong>Selected Location:</strong> {formData.suburb}, {aucklandLocations[formData.city]?.name}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -808,7 +923,7 @@ export default function PropertyValuationCalculator() {
 
             {/* Yearly Growth Breakdown */}
             {formData.purchaseYear && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-semibold text-blue-800 mb-3">Year-by-Year Growth Applied</h4>
                 <div className="max-h-32 overflow-y-auto">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -852,7 +967,7 @@ export default function PropertyValuationCalculator() {
               </div>
 
               <Card className="border-blue-200 bg-blue-50 border-2">
-                <CardContent className="p-6">
+                <CardContent>
                   <div className="text-center mb-4">
                     <div className="flex justify-center mb-2">
                       <TrendingUp className="h-6 w-6 text-blue-600" />
@@ -910,107 +1025,91 @@ export default function PropertyValuationCalculator() {
                 </CardContent>
               </Card>
 
-              {/* Compare with Current Listings */}
-              {formData.suburb && estimates && (
+              {/* Enhanced Property Search Links */}
+              {formData.city && formData.suburb && estimates && (
                 <Card className="border-purple-200 bg-purple-50 border-2">
-                  <CardContent className="p-6">
+                  <CardContent>
                     <div className="flex items-center mb-4">
                       <MapPin className="h-5 w-5 text-purple-600 mr-2" />
                       <h4 className="text-xl font-semibold text-purple-800">Compare with Current Market Listings</h4>
                     </div>
-                    <p className="text-sm text-purple-700 mb-4">
-                      Use these search criteria to find properties similar to your valuation of{" "}
-                      {formatCurrency(estimates.totalEstimatedValue)}
-                    </p>
 
-                    <div className="bg-white rounded-lg p-4 border border-purple-200 mb-4">
-                      <h5 className="font-semibold text-gray-900 mb-3">Manual Search Instructions</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Location:</span>
-                            <span className="text-gray-900">{formData.suburb}, Auckland</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Min Price:</span>
-                            <span className="text-gray-900">{formatCurrency(estimates.totalEstimatedValue * 0.9)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Max Price:</span>
-                            <span className="text-gray-900">{formatCurrency(estimates.totalEstimatedValue * 1.1)}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Property Type:</span>
-                            <span className="text-gray-900">Residential</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Search Range:</span>
-                            <span className="text-gray-900">±10% of valuation</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Status:</span>
-                            <span className="text-gray-900">For Sale</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    {(() => {
+                      const searchUrls = generatePropertySearchUrls()
+                      if (!searchUrls) return null
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <a
-                        href="https://www.trademe.co.nz/a/property/residential/sale"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                      >
-                        <MapPin className="h-4 w-4 mr-2" />
-                        Search on TradeMe Property
-                        <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                      </a>
+                      return (
+                        <>
+                          <div className="bg-white rounded-lg border border-purple-200 mb-4">
+                            <div className="text-sm text-purple-700 mb-4">
+                              <p className="font-medium">
+                                Search for properties in{" "}
+                                <strong>
+                                  {searchUrls.suburbName}, {searchUrls.cityName}
+                                </strong>
+                              </p>
+                              <p>
+                                Valuation range: {formatCurrency(estimates.totalEstimatedValue * 0.9)} -{" "}
+                                {formatCurrency(estimates.totalEstimatedValue * 1.1)}
+                              </p>
+                            </div>
 
-                      <a
-                        href="https://www.realestate.co.nz/residential/sale"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
-                      >
-                        <MapPin className="h-4 w-4 mr-2" />
-                        Search on RealEstate.co.nz
-                        <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                      </a>
-                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <a
+                                href={searchUrls.realEstate}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                              >
+                                <MapPin className="h-4 w-4 mr-2" />
+                                Search RealEstate.co.nz
+                                <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
 
-                    <div className="mt-4 p-3 bg-white rounded text-xs">
-                      <p className="text-gray-700 mb-2">
-                        <strong>How to use:</strong> Click either button above to open the property search site, then
-                        manually enter the search criteria shown above.
-                      </p>
-                      <p className="text-gray-700">
-                        Compare the asking prices, property features, and locations to validate your estimated value of{" "}
-                        {formatCurrency(estimates.totalEstimatedValue)}.
-                      </p>
-                    </div>
+                              <a
+                                href={searchUrls.tradeMe}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                              >
+                                <MapPin className="h-4 w-4 mr-2" />
+                                Search TradeMe Property
+                                <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
+                            </div>
+
+                            <div className="mt-4 p-3 bg-purple-50 rounded text-xs">
+                              <p className="text-purple-700">
+                                <strong>Smart Search:</strong> These links are automatically generated for{" "}
+                                {searchUrls.suburbName} in {searchUrls.cityName}. Compare asking prices and property
+                                features to validate your estimated value of{" "}
+                                {formatCurrency(estimates.totalEstimatedValue)}.
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               )}
 
               {/* Year-by-Year Growth Calculation Banner */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-semibold text-blue-800 mb-3">Growth Calculation Applied to Your Property</h4>
                 <div className="max-h-32 overflow-y-auto">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -1030,216 +1129,52 @@ export default function PropertyValuationCalculator() {
               </div>
 
               {/* Suburb Report */}
-              {estimates &&
-                formData.suburb &&
-                (() => {
-                  const suburbReport = getSuburbReport()
-                  if (!suburbReport) {
-                    return (
-                      <Card className="border-gray-200 bg-gray-50 border-2">
-                        <CardContent className="p-6 text-center">
-                          <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                          <h4 className="text-xl font-semibold text-gray-600 mb-2">Suburb Report Not Available</h4>
-                          <p className="text-gray-500">
-                            Detailed suburb data for "{formData.suburb}" is not currently available.
-                            <br />
-                            Try: Botany, Pakuranga, or Howick for sample reports.
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )
-                  }
+              {estimates && formData.city && formData.suburb && (
+                <Card className="border-green-200 bg-green-50 border-2">
+                  <CardContent>
+                    <div className="flex items-center mb-6">
+                      <MapPin className="h-6 w-6 text-green-600 mr-3" />
+                      <div>
+                        <h4 className="text-2xl font-bold text-green-800">
+                          Need a detailed current Suburb Report for {formData.suburb},{" "}
+                          {aucklandLocations[formData.city]?.name}?
+                        </h4>
+                        <p className="text-green-600 mt-2">You will find this on the link below:</p>
+                      </div>
+                    </div>
 
-                  return (
-                    <Card className="border-green-200 bg-green-50 border-2">
-                      <CardContent className="p-6">
-                        <div className="flex items-center mb-6">
-                          <MapPin className="h-6 w-6 text-green-600 mr-3" />
-                          <div>
-                            <h4 className="text-2xl font-bold text-green-800">{suburbReport.name} Suburb Report</h4>
-                            <p className="text-green-600">
-                              {suburbReport.region} • Updated {new Date(suburbReport.lastUpdated).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
+                    <div className="flex justify-center">
+                      <a
+                        href={`https://www.realestate.co.nz/insights/auckland/${formData.city}/${formData.suburb.toLowerCase().replace(/\s+/g, "-")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Suburb Report
+                        <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </a>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {/* Property Market */}
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
-                              <DollarSign className="h-4 w-4 mr-2 text-green-600" />
-                              Property Market
-                            </h5>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Average Sale Price:</span>
-                                <span className="font-semibold">{formatCurrency(suburbReport.averageSalePrice)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Median Sale Price:</span>
-                                <span className="font-semibold">{formatCurrency(suburbReport.medianSalePrice)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Sales Volume (12m):</span>
-                                <span className="font-semibold">
-                                  {suburbReport.marketTrends.salesVolume} properties
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Days on Market:</span>
-                                <span className="font-semibold">{suburbReport.marketTrends.daysOnMarket} days</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Price Growth (12m):</span>
-                                <span
-                                  className={`font-semibold ${suburbReport.marketTrends.priceGrowth12Months >= 0 ? "text-green-700" : "text-red-700"}`}
-                                >
-                                  {suburbReport.marketTrends.priceGrowth12Months >= 0 ? "+" : ""}
-                                  {suburbReport.marketTrends.priceGrowth12Months}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                    <div className="mt-4 p-3 bg-white rounded text-xs text-center">
+                      <p className="text-gray-700">
+                        <strong>Detailed Insights:</strong> This link will take you to comprehensive suburb data
+                        including recent sales, market trends, demographics, and local amenities for {formData.suburb}{" "}
+                        in {aucklandLocations[formData.city]?.name}.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                          {/* Rental Market */}
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
-                              <TrendingUp className="h-4 w-4 mr-2 text-green-600" />
-                              Rental Market
-                            </h5>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Average Rent/Week:</span>
-                                <span className="font-semibold">${suburbReport.averageRentalPrice}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Median Rent/Week:</span>
-                                <span className="font-semibold">${suburbReport.medianRentalPrice}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Rental Yield:</span>
-                                <span className="font-semibold">{suburbReport.marketTrends.rentalYield}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Annual Rent:</span>
-                                <span className="font-semibold">
-                                  ${(suburbReport.averageRentalPrice * 52).toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Demographics */}
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
-                              <Info className="h-4 w-4 mr-2 text-green-600" />
-                              Demographics
-                            </h5>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Population:</span>
-                                <span className="font-semibold">
-                                  {suburbReport.demographics.population.toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Households:</span>
-                                <span className="font-semibold">
-                                  {suburbReport.demographics.households.toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Median Age:</span>
-                                <span className="font-semibold">{suburbReport.demographics.medianAge} years</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Median Income:</span>
-                                <span className="font-semibold">
-                                  ${suburbReport.demographics.medianIncome.toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Ethnicity Breakdown */}
-                        <div className="mt-6 bg-white rounded-lg p-4 border border-green-200">
-                          <h5 className="font-semibold text-gray-900 mb-3">Ethnicity Breakdown</h5>
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                            {Object.entries(suburbReport.demographics.ethnicityBreakdown).map(
-                              ([ethnicity, percentage]) => (
-                                <div key={ethnicity} className="text-center">
-                                  <div className="bg-green-100 rounded-full h-12 w-12 mx-auto mb-1 flex items-center justify-center">
-                                    <span className="font-bold text-green-800">{percentage}%</span>
-                                  </div>
-                                  <p className="text-gray-600 capitalize">{ethnicity}</p>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Amenities */}
-                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3">Schools & Education</h5>
-                            <ul className="text-sm space-y-1">
-                              {suburbReport.amenities.schools.map((school, index) => (
-                                <li key={index} className="text-gray-700">
-                                  • {school}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3">Shopping & Retail</h5>
-                            <ul className="text-sm space-y-1">
-                              {suburbReport.amenities.shopping.map((shop, index) => (
-                                <li key={index} className="text-gray-700">
-                                  • {shop}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3">Transport</h5>
-                            <ul className="text-sm space-y-1">
-                              {suburbReport.amenities.transport.map((transport, index) => (
-                                <li key={index} className="text-gray-700">
-                                  • {transport}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="bg-white rounded-lg p-4 border border-green-200">
-                            <h5 className="font-semibold text-gray-900 mb-3">Recreation</h5>
-                            <ul className="text-sm space-y-1">
-                              {suburbReport.amenities.recreation.map((rec, index) => (
-                                <li key={index} className="text-gray-700">
-                                  • {rec}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="mt-6 p-4 bg-white rounded-lg border border-green-200">
-                          <h5 className="font-semibold text-gray-900 mb-2">Data Sources</h5>
-                          <p className="text-xs text-gray-600">
-                            Property data: REINZ, Barfoot & Thompson, Ray White • Demographic data: Stats NZ Census 2023
-                            • Rental data: TradeMe Property, Tenancy Services • Amenity data: Auckland Council, Google
-                            Maps
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })()}
-
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex items-start">
                   <Info className="h-5 w-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
                   <div className="text-sm text-amber-800">
