@@ -1128,7 +1128,123 @@ export default function PropertyValuationCalculator() {
                 </div>
               </div>
 
-              {/* Suburb Report */}
+              {/* Suburb Report with Iframe */}
+              {estimates && formData.city && formData.suburb && (
+                <Card className="border-green-200 bg-green-50 border-2">
+                  <CardContent>
+                    <div className="flex items-center mb-6">
+                      <MapPin className="h-6 w-6 text-green-600 mr-3" />
+                      <div>
+                        <h4 className="text-2xl font-bold text-green-800">
+                          Detailed Suburb Report for {formData.suburb}, {aucklandLocations[formData.city]?.name}
+                        </h4>
+                        <p className="text-green-600 mt-2">Live data from RealEstate.co.nz:</p>
+                      </div>
+                    </div>
+
+                    {/* Iframe Container */}
+                    <div className="mb-4">
+                      <div className="bg-white rounded-lg border border-green-200 overflow-hidden">
+                        <div className="p-3 bg-green-100 border-b border-green-200 flex justify-between items-center">
+                          <span className="text-sm font-medium text-green-800">Suburb Insights: {formData.suburb}</span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const iframe = document.getElementById("suburb-iframe")
+                                if (iframe) {
+                                  iframe.style.height = iframe.style.height === "600px" ? "1400px" : "600px"
+                                }
+                              }}
+                              className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                            >
+                              Resize
+                            </button>
+                            <a
+                              href={`https://www.realestate.co.nz/insights/auckland/${formData.city}/${formData.suburb.toLowerCase().replace(/\s+/g, "-")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                            >
+                              Open Full Page
+                            </a>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <iframe
+                            id="suburb-iframe"
+                            src={`https://www.realestate.co.nz/insights/auckland/${formData.city}/${formData.suburb.toLowerCase().replace(/\s+/g, "-")}`}
+                            className="w-full border-0"
+                            style={{ height: "1400px" }}
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                            loading="lazy"
+                            onLoad={() => {
+                              console.log("Iframe loaded successfully")
+                              const loadingDiv = document.getElementById("iframe-loading")
+                              if (loadingDiv) loadingDiv.style.display = "none"
+                            }}
+                            onError={() => {
+                              console.log("Iframe failed to load")
+                              const errorDiv = document.getElementById("iframe-error")
+                              const loadingDiv = document.getElementById("iframe-loading")
+                              if (errorDiv) errorDiv.style.display = "block"
+                              if (loadingDiv) loadingDiv.style.display = "none"
+                            }}
+                          />
+
+                          {/* Loading State */}
+                          <div
+                            id="iframe-loading"
+                            className="absolute inset-0 bg-white flex items-center justify-center"
+                          >
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">Loading suburb report...</p>
+                            </div>
+                          </div>
+
+                          {/* Error State */}
+                          <div
+                            id="iframe-error"
+                            className="absolute inset-0 bg-white flex items-center justify-center"
+                            style={{ display: "none" }}
+                          >
+                            <div className="text-center p-4">
+                              <p className="text-sm text-red-600 mb-2">Unable to load embedded report</p>
+                              <a
+                                href={`https://www.realestate.co.nz/insights/auckland/${formData.city}/${formData.suburb.toLowerCase().replace(/\s+/g, "-")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                              >
+                                View Full Report
+                                <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-3 bg-white rounded text-xs text-center">
+                      <p className="text-gray-700">
+                        <strong>Live Data:</strong> This embedded report shows real-time suburb insights including
+                        recent sales, market trends, demographics, and local amenities for {formData.suburb} in{" "}
+                        {aucklandLocations[formData.city]?.name}. If the embedded view doesn't load, click "Open Full
+                        Page" above.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+             {/* Suburb Report */}
               {estimates && formData.city && formData.suburb && (
                 <Card className="border-green-200 bg-green-50 border-2">
                   <CardContent>
@@ -1161,7 +1277,8 @@ export default function PropertyValuationCalculator() {
                           />
                         </svg>
                       </a>
-                    </div>        
+                    </div>
+
                     <div className="mt-4 p-3 bg-white rounded text-xs text-center">
                       <p className="text-gray-700">
                         <strong>Detailed Insights:</strong> This link will take you to comprehensive suburb data
@@ -1172,6 +1289,7 @@ export default function PropertyValuationCalculator() {
                   </CardContent>
                 </Card>
               )}
+			  
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex items-start">
