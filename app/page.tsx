@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Auckland Property Valuation Calculator</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Instant & Free Property Valuation Auckland</h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
             Professional property valuation using multi-source Auckland market data from REINZ, CoreLogic, QV, OneRoof,
             and RBNZ
