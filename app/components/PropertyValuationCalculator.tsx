@@ -776,57 +776,6 @@ export default function PropertyValuationCalculator() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="John Smith"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  placeholder="john@example.com"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  placeholder="+64 21 123 4567"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Property Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  placeholder="123 Main Road"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
             {/* Location Selection */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -876,10 +825,19 @@ export default function PropertyValuationCalculator() {
               )}
             </div>
 
-            <Separator />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+               <div className="space-y-2">
+                <Label htmlFor="address">Property Address</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  placeholder="123 Main Road"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+			  <div className="space-y-2">
                 <Label htmlFor="purchasePrice">Original Purchase Price (NZD)</Label>
                 <Input
                   id="purchasePrice"
@@ -891,7 +849,10 @@ export default function PropertyValuationCalculator() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+			  <div className="space-y-2">
                 <Label htmlFor="purchaseYear">Purchase Year</Label>
                 <Input
                   id="purchaseYear"
@@ -906,9 +867,7 @@ export default function PropertyValuationCalculator() {
                 />
                 <p className="text-sm text-gray-500">Enter year between 1980-{new Date().getFullYear()}</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
+			  <div className="space-y-2">
               <Label htmlFor="improvements">Value of Improvements (NZD)</Label>
               <Input
                 id="improvements"
@@ -919,7 +878,49 @@ export default function PropertyValuationCalculator() {
                 onChange={handleChange}
               />
               <p className="text-sm text-gray-500">Include renovations, extensions, or major upgrades</p>
+              </div>
+
             </div>
+
+            <Separator />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="John Smith"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  placeholder="john@example.com"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+			  
+			  <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  placeholder="021 123 4567"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+            </div>
+			
 
             {/* Yearly Growth Breakdown */}
             {formData.purchaseYear && (
